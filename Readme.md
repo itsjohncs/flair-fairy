@@ -14,3 +14,10 @@ do what you like, doesn't matter to me.
 
 Super yes, if you want to add more features to it, fork and send a pull request.
 I'd be very appreciative.
+
+### What dependencies do I need?
+
+easy_install [reddit](https://github.com/mellort/reddit_api) and
+[requests](http://docs.python-requests.org/en/latest/index.html) then you're
+all set to go! Was written to work with most versions of python, let me know
+if you have trouble though.

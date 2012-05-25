@@ -122,7 +122,7 @@ while wait(options.refresh_speed):
         submissions = list(subreddit.get_new_by_date(
             limit = None, 
             place_holder = last_checked
-        ))
+        ))[1:] # Skip the place_holder
 
     # Mark the first submission as our last checked as it is the most recent.
     # That way when we grab more submissions in the next cycle we'll grab
@@ -134,6 +134,7 @@ while wait(options.refresh_speed):
         # If flair has already been added skip this submission
         if i.link_flair_text and not options.blow_away:
             continue
+        
         try:
             language = binparser.get_language(i.url)
         except RuntimeError:
@@ -149,6 +150,8 @@ while wait(options.refresh_speed):
             print "Would set post '%s' to be language '%s'." \
                       % (i.title, shortname)
         else:
+            log("Setting post '%s' to language '%s'" % (i.title, shortname))
+            
             i.set_flair(shortname)
             
             # Sleep for a bit so that we don't make reddit mad at us

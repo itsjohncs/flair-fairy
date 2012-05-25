@@ -1,0 +1,14 @@
+I'd like to add the following features:
+	+ Make the parsing of paste bin pages a little more manageable
+	+ Check to see if name_map.json has been updated periodically and
+	  auto-magically reload it. (This feature might not be worth the
+	  trouble).
+	+ Implement real logging with the python logging framework so it will
+	  be easier to have the server send logging messages to other places.
+	  (I would really like to be alerted by email when the bot goes down).
+
+And a related thing:
+	+ I'd like for the flair on /r/badcode to look a little nicer. Add some
+	  CSS style and some images and whatnot. At the moment it's pretty
+	  ugly.
+

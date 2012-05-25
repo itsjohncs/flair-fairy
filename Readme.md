@@ -2,7 +2,7 @@
 
 ## What is the Flair Fairy?
 
-The Flair Fairy is a reddit bot I made for reddit.com/r/badcode that adds flair
+The Flair Fairy is a reddit bot I made for [/r/badcode](http://www.reddit.com/r/badcode) that adds flair
 to user's posts listing what language their posted code snippet uses.
 
 ## What license is it released under?

@@ -28,11 +28,16 @@ option_list = [
     make_option("--debug", dest = "debug", default = False,
                 action = "store_true",
                 help = "The fairy will not make any changes, rather it will "
-                       "only announce the changes it would make.")
+                       "only announce the changes it would make."),
+    make_option("--blow-away", dest = "blow_away", default = False,
+                action = "store_true",
+                help = "The fairy will not ignore posts tha already have "
+                       "flair.")
 ]
 
 parser = OptionParser(
-    description = "Ensures the language flair on /r/badcode is updated.",
+    description = "Adds flair to posts linking to code snippets that specify "
+                  "what language the snippet was written in.",
     option_list = option_list
 )
 
@@ -82,7 +87,7 @@ def wait(seconds):
     return not exiting
 
 ## Prepwork Done. Let's Reddit! ##
-import reddit, requests, re, shortnames
+import reddit, requests, re, shortnames, binparser
 
 if options.debug:
     log("Running in debug mode...")
@@ -127,45 +132,23 @@ while wait(options.refresh_speed):
 
     for i in submissions:
         # If flair has already been added skip this submission
-        if i.link_flair_text:
+        if i.link_flair_text and not options.blow_away:
             continue
-            
-        # Figure out what site were dealing with
-        if re.match("http://(www.)?pastebin.com/", i.url):
-            site = "pastebin"
-        elif re.match("http://(www.)?codepad.org/", i.url):
-            site = "codepad"
-        else:
-            # We can't figure it out... Move along.
+        try:
+            language = binparser.get_language(i.url)
+        except RuntimeError:
+            # Broken link
             continue
         
-        # Get the page
-        page = requests.get(i.url)
-        if page.status_code != requests.codes.ok:
-            log("Could not access %s for post %s" % (i.url, i.title))
+        if language is None:
             continue
-            
-        # This could probably be nicer
-        language = None
-        if site == "pastebin":
-            match = re.search(r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",
-                              page.content, re.DOTALL | re.IGNORECASE)
-            
-            if match:
-                language = match.group(1)
-        elif site == "codepad":
-            match = re.search(r"<head>.*?<title>(.*?) .*?</title>.*?</head>",
-                              page.content, re.DOTALL | re.IGNORECASE)
-    
-            if match:
-                language = match.group(1)
-        if not language:
-            continue
+        
+        shortname = name_mapper.map_name(language).lower()
         
         if options.debug:
             print "Would set post '%s' to be language '%s'." \
-                      % (i.title, name_mapper.map_name(language.lower()))
+                      % (i.title, shortname)
         else:
-            i.set_flair(name_mapper.map_name(language.lower()))
+            i.set_flair(shortname)
             
     log("Ending work cycle.")

@@ -1,0 +1,6 @@
+[
+	["c\\+\\+", "cpp"],
+	["v[A-Ba-b1-9]* ?basic", "vb"],
+	["basic", "basic"],
+	["j(ava)? ?script", "js"]
+]

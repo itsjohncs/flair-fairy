@@ -16,7 +16,19 @@ option_list = [
     make_option("-q", "--quiet", dest = "quiet", default = False, 
                 action = "store_true",
                 help = "The bot will not explain all of its actions ad "
-                       "nauseum.")
+                       "nauseum."),
+    make_option("--map-file", dest = "map_file", default = "name_map.json",
+                type = str,
+                help = "The file containing the mapping from longname to short "
+                       "for all the languages."),
+    make_option("--start-count", dest = "start_count", default = 100,
+                type = int,
+                help = "The maximum number of posts the fiary retrieves out of "
+                       "the newest posts and processes."),
+    make_option("--debug", dest = "debug", default = False,
+                action = "store_true",
+                help = "The fairy will not make any changes, rather it will "
+                       "only announce the changes it would make.")
 ]
 
 parser = OptionParser(
@@ -31,7 +43,7 @@ if not (options.username and options.password and options.subreddit):
     parser.error("Username, password, and subreddit required.")
 
 ## Boring Prep Work ##
-import time, signal, sys
+import time, signal
 
 # Logging is a pain without one of these
 def log(message):
@@ -40,13 +52,18 @@ def log(message):
     if not options.quiet:
         print message
 
-# Set it up so if SIGINT is encountered we exit gracefully
+# Set it up so if SIGINT is encountered we exit gracefully. Logic for this is
+# that if a SIGINT occurs in the middle of the bot doing something important
+# a redditors day might be ruined. Downside is if the bot goes haywire it's
+# harder to stop. Upside is if your like the rest of the world you run something
+# akin to screen and can kill it forcibly easily.
 exiting = False
 def _setExit(a, b):
     global exiting
     
-    print >> sys.stderr, "Exiting soon..."
+    print "Exiting soon..."
     exiting = True
+    
 signal.signal(signal.SIGINT, _setExit)
 
 def wait(seconds):
@@ -63,31 +80,26 @@ def wait(seconds):
         
     # Return True iff were not exiting
     return not exiting
-    
-# Used to map language names to more better ones
-name_map = (
-    (r"c\+\+", "cpp"),
-    (r"visual ?basic", "vb"),
-    (r".*basic.*", "basic")
-)
-
-def map_name(name):
-    for key, item in name_map:
-        if re.match(key, name):
-            return item
-            
-    return name
 
 ## Prepwork Done. Let's Reddit! ##
-import reddit, requests, re
+import reddit, requests, re, shortnames
+
+if options.debug:
+    log("Running in debug mode...")
+
+# Prepare the language mapper
+name_mapper = shortnames.ShortNameMapper(open(options.map_file))
 
 # Connect to reddit
 r = reddit.Reddit(user_agent = "reddit-flair-fairy:/r/badcode owner:brownhead")
 log("Connected to reddit.")
 
 # Send login info
-r.login(options.username, options.password)
-log("Logged in.")
+try:
+    r.login(options.username, options.password)
+    log("Logged in.")
+except reddit.errors.InvalidUserPass:
+    exit("Invalid Password!")
 
 # Connect to the desired subreddit
 subreddit = r.get_subreddit(options.subreddit)
@@ -150,6 +162,10 @@ while wait(options.refresh_speed):
         if not language:
             continue
         
-        i.set_flair(map_name(language.lower()))
+        if options.debug:
+            print "Would set post '%s' to be language '%s'." \
+                      % (i.title, name_mapper.map_name(language.lower()))
+        else:
+            i.set_flair(name_mapper.map_name(language.lower()))
             
     log("Ending work cycle.")

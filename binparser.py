@@ -80,12 +80,20 @@ class SimpleRegexParser(BaseParser):
 
 parsers = (
     SimpleRegexParser(
-        r"http://(www.)?pastebin.com/",
+        r"http://(www\.)?pastebin.com/",
         r"<head>.*<title>\[(?P<lang>.*?)\].*</title>.*</head>"
     ),
     SimpleRegexParser(
-        r"http://(www.)?codepad.org/",
+        r"http://(www\.)?codepad.org/",
         r"<head>.*<title>(?P<lang>.*?)code.*</title>.*</head>"
+    ),
+    SimpleRegexParser(
+        r"https?://((www)|(gist)\.)?github.com/",
+        r'<div class="data type-(?P<lang>[A-Za-z]*?)"'
+    ),
+    SimpleRegexParser(
+        r"http://(www\.)?hatepaste.com/",
+        r'<p class="lead lang"><a href=".*?">(?P<lang>.*?)</a>'
     )
 )
 

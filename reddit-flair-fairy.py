@@ -96,7 +96,7 @@ if options.debug:
 name_mapper = shortnames.ShortNameMapper(open(options.map_file))
 
 # Connect to reddit
-r = reddit.Reddit(user_agent = "reddit-flair-fairy:/r/badcode owner:brownhead")
+r = reddit.Reddit(user_agent = "bot:flair-fairy target:/r/badcode owner:brownhead")
 log("Connected to reddit.")
 
 # Send login info
@@ -150,5 +150,8 @@ while wait(options.refresh_speed):
                       % (i.title, shortname)
         else:
             i.set_flair(shortname)
+            
+            # Sleep for a bit so that we don't make reddit mad at us
+            time.sleep(4)
             
     log("Ending work cycle.")

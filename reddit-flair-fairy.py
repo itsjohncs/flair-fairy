@@ -10,7 +10,7 @@ option_list = [
                 help = "The name of the subreddit (eg: badcode) the bot will "
                        "work within."),
     make_option("--refresh-speed", dest = "refresh_speed", type = float,
-                default = 10.0,
+                default = 30.0,
                 help = "The number of time in seconds the bot will wait before "
                        "performing more work."),
     make_option("-q", "--quiet", dest = "quiet", default = False, 
@@ -148,13 +148,6 @@ while wait(options.refresh_speed):
             if match:
                 language = match.group(1)
         if not language:
-            continue
-        
-        print "Going to set post '%s' to language '%s'" \
-                  % (i.title, map_name(language.lower()))
-        
-        if raw_input("Type yes to confirm: ") != "yes":
-            print "Skipping..."
             continue
         
         i.set_flair(map_name(language.lower()))

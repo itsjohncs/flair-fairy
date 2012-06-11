@@ -1,7 +1,5 @@
 I'd like to add the following features:
-	+ Implement real logging with the python logging framework so it will
-	  be easier to have the server send logging messages to other places.
-	  (I would really like to be alerted by email when the bot goes down).
+	+ Save the state of the bot when closing so it can resume immediately the next run.
 	+ Check to see if name_map.json has been updated periodically and
 	  auto-magically reload it. (This feature might not be worth the
 	  trouble).

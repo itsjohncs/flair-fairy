@@ -38,16 +38,19 @@ option_list = [
                 help = "The fairy will not make any changes, rather it "
                        "will only announce the changes it would make."),
                        
-    make_option("--blow-away", dest = "blow_away", default = False,
-                action = "store_true",
-                help = "The fairy will not ignore posts tha already have "
-                       "flair."),
-                       
-    make_option("-l", "--log-level", dest = "logLevel", type = "int",
+    make_option("-l", "--log-level", dest = "log_level", type = "int",
                 default = logging.DEBUG, metavar = "LEVEL",
                 help = "Only output log entries above LEVEL (default: "
+                       "%default)"),
+                       
+    make_option("--config", dest = "config_path", type = "string",
+                default = "config/", metavar = "PATH",
+                help = "Search for config files in directory at PATH (default: "
                        "%default)")
 ]
+
+from app.routines import *
+option_list += RoutinesRunner.get_options()
 
 parser = OptionParser(
     description = "Adds flair to posts linking to code snippets that "
@@ -68,7 +71,7 @@ if not options.quiet:
     sh.setFormatter(logging.Formatter(
         "[%(asctime)s] %(name)s.%(levelname)s: %(message)s"))
     topLog = logging.getLogger("flairfairy")
-    topLog.setLevel(options.logLevel)
+    topLog.setLevel(options.log_level)
     topLog.addHandler(sh)
 
 log = logging.getLogger("flairfairy")
@@ -95,95 +98,13 @@ except reddit.errors.InvalidUserPass:
     
 log.info("Succesfully logged in as user %s." % options.username)
 
+## Do it ##
+import time
+
+runner = RoutinesRunner(options)
+while True:
+    runner.run(r, options)
+    
+    time.sleep(15)
+
 log.info("Exiting...")
-
-# Set it up so if SIGINT is encountered we exit gracefully. Logic for this is
-# that if a SIGINT occurs in the middle of the bot doing something important
-# a redditors day might be ruined. Downside is if the bot goes haywire it's
-# harder to stop. Upside is if your like the rest of the world you run something
-# akin to screen and can kill it forcibly easily.
-#exiting = False
-#def _setExit(a, b):
-#    global exiting
-#    
-#    print "Exiting soon..."
-#    exiting = True
-    
-#signal.signal(signal.SIGINT, _setExit)
-
-#def wait(seconds):
-    #"""
-    #Waits a given amount of seconds (floating numbers OK) and then returns True.
-    #If exiting is True when the function begins or a SIGINT is encountered
-    #during waiting, False is returned.
-    
-    #"""
-    
-    ## Sleep if were not exiting yet
-    #if not exiting:
-        #time.sleep(seconds)
-        
-    ## Return True iff were not exiting
-    #return not exiting
-
-### Prepwork Done. Let's Reddit! ##
-#import reddit, requests, re, shortnames, binparser, socket
-
-#options = None
-
-## Begin work cycle.... Now!
-#def run(subreddit):
-    ## Prepare the language mapper
-    #name_mapper = shortnames.ShortNameMapper(open(options.map_file))
-    
-    #log("Beginning work cycle...")
-    
-    #try:
-        ## Grab the posts we will scan through
-        #if not run.last_checked:
-            ## 100 new posts should account for small amounts of bot downtime
-            #submissions = list(subreddit.get_new_by_date(limit = 100))
-        #else:
-            #submissions = list(subreddit.get_new_by_date(
-                #limit = None, 
-                #place_holder = run.last_checked
-            #))[1:] # Skip the place_holder
-    #except socket.timeout:
-        #log("Could not retrieve a list of submissions!")
-    
-    ## Mark the first submission as our last checked as it is the most recent.
-    ## That way when we grab more submissions in the next cycle we'll grab
-    ## everything more recent that it.
-    #if submissions:
-        #run.last_checked = submissions[0].id
-
-    #for i in submissions:
-        ## If flair has already been added skip this submission
-        #if i.link_flair_text and not options.blow_away:
-            #continue
-        
-        #try:
-            #language = binparser.get_language(i.url)
-        #except RuntimeError:
-            ## Broken link
-            #continue
-        
-        #if language is None:
-            #continue
-        
-        #shortname = name_mapper.map_name(language).lower()
-        
-        #if options.debug:
-            #print "Would set post '%s' to be language '%s'." \
-                      #% (i.title, shortname)
-        #else:
-            #log("Setting post '%s' to language '%s'" % (i.title, shortname))
-            
-            #i.set_flair(shortname)
-            
-            ## Sleep for a bit so that we don't make reddit mad at us
-            #time.sleep(4)
-            
-    #log("Ending work cycle.")
-    
-#run.last_checked = None

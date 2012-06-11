@@ -6,6 +6,9 @@ paste bins.
 
 import re, requests
 
+class ConnectionFailure(Exception):
+    pass
+
 class BaseParser:
     """
     Base class mainly for instructional purposes. Also in case we need it.
@@ -24,7 +27,7 @@ class BaseParser:
     def load_page(self, url):
         request = requests.get(url)
         if request.status_code != requests.codes.ok:
-            raise RuntimeError("Could not connect")
+            raise ConnectionFailure()
         
         self.page = request.text
         

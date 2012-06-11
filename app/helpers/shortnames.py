@@ -1,6 +1,6 @@
 """
 A module used to map longer programming language names to simpler, more
-recognizable/reddit friendly ones.
+recognizable/reddit-friendly ones.
 
 """
 
@@ -57,8 +57,6 @@ class ShortNameMapper:
         
         """
         
-        # Since this function likely won't be called very often and json may not
-        # be available on their system this seems like a nice way to do this.
         import json
         
         # Load the JSON file

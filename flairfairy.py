@@ -83,7 +83,9 @@ log = logging.getLogger("flairfairy")
 
 ## Connect to reddit ##
 r = reddit.Reddit(
-    user_agent = "bot:flair-fairy target:/r/badcode owner:brownhead"
+    user_agent = "bot:flair-fairy updates Flair for submissions after which" +
+                 " programming language they contain. Owner by u/brownhead." +
+                 " More info: github.com/brownhead/flair-fairy"
 )
 
 # Negative refresh_speed will cause a crash in time.sleep

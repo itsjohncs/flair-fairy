@@ -31,12 +31,12 @@ class LanguageFlair:
     
         # Create shortname dict
         try:
-            name_map = os.path.join(options.config_path, 'name_map.json')
+            name_map = os.path.join(options.config_path, options.map_file)
             with open(name_map, 'r') as json_in:
                 without_newline = json_in.read().replace("\n", "")
                 self.name_dict = json.loads(without_newline)
         except IOError:
-            log.warn("Could not open name_map.json.")
+            log.warn("Could not open %s." % options.map_file)
             self.name_dict = {}
 
     def shortname(self, long_name):
@@ -70,9 +70,8 @@ class LanguageFlair:
             log.debug("Processing post %s." % post_id)
             
             # Ignore all submissions that already have flair
-            # TODO commented for testing purposes. Uncomment before push
-#            if i.link_flair_text and not options.blow_away:
-#                continue
+            if i.link_flair_text and not options.blow_away:
+                continue
               
             # Don't know how to parse code from this domain
             if not i.domain in code_sites.keys():

@@ -1,6 +1,11 @@
 ## Parse Command Line Argument ##
-from optparse import OptionParser, make_option
 import logging # Needed for the logging command line argument default
+import reddit
+import sys
+import time
+from optparse import OptionParser, make_option
+
+from app.routines import *
 
 option_list = [
     make_option("-u", "--username", dest = "username", type = str,
@@ -10,6 +15,7 @@ option_list = [
                 help = "The password on reddit the bot will use to login."),
                 
     make_option("-r", "--reddit", dest = "subreddit", type = str,
+                default = "badcode",
                 help = "The name of the subreddit (eg: badcode) the bot "
                        "will work within."),
                        
@@ -49,7 +55,6 @@ option_list = [
                        "%default)")
 ]
 
-from app.routines import *
 option_list += RoutinesRunner.get_options()
 
 parser = OptionParser(
@@ -77,11 +82,15 @@ if not options.quiet:
 log = logging.getLogger("flairfairy")
 
 ## Connect to reddit ##
-import reddit, sys
-
 r = reddit.Reddit(
-    user_agent = "bot:flair-fairy target:/r/badcode owner:brownhead"
+    user_agent = "bot:flair-fairy updates Flair for submissions after which" +
+                 " programming language they contain. Owner by u/brownhead." +
+                 " More info: github.com/brownhead/flair-fairy"
 )
+
+# Negative refresh_speed will cause a crash in time.sleep
+if options.refresh_speed < 0:
+    options.refresh_speed = 30
 
 # Prompt the user for the password if one wasn't specified on the command line
 if not options.password:
@@ -99,12 +108,9 @@ except reddit.errors.InvalidUserPass:
 log.info("Succesfully logged in as user %s." % options.username)
 
 ## Do it ##
-import time
-
 runner = RoutinesRunner(options)
 while True:
     runner.run(r, options)
-    
-    time.sleep(15)
+    time.sleep(options.refresh_speed)
 
 log.info("Exiting...")

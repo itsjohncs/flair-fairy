@@ -83,6 +83,10 @@ r = reddit.Reddit(
     user_agent = "bot:flair-fairy target:/r/badcode owner:brownhead"
 )
 
+# Negative refresh_speed will cause a crash in time.sleep
+if options.refresh_speed < 0:
+    options.refresh_speed = 30
+
 # Prompt the user for the password if one wasn't specified on the command line
 if not options.password:
     import getpass
@@ -104,7 +108,6 @@ import time
 runner = RoutinesRunner(options)
 while True:
     runner.run(r, options)
-    
-    time.sleep(15)
+    time.sleep(options.refresh_speed)
 
 log.info("Exiting...")

@@ -16,15 +16,6 @@ class LanguageFlair:
     
     def __init__(self, options, subreddits):
         try:
-            self.name_mapper = shortnames.ShortNameMapper(
-                open(os.path.join(options.config_path, "name_map.json"))
-            )
-        except IOError:
-            log.warn("Could not open name_map.json.")
-            
-            self.name_mapper = None
-            
-        try:
             self.flair_templates = \
                 json.load(open(os.path.join(options.config_path, "flair_templates.json")))
         except IOError:
@@ -34,6 +25,22 @@ class LanguageFlair:
         
         self.proxy = proxies.NewSubmissionsProxy(subreddits)
     
+        # Create shortname dict
+        try:
+            name_map = os.path.join(options.config_path, 'name_map.json')
+            with open(name_map, 'r') as json_in:
+                without_newline = json_in.read().replace("\n", "")
+                self.name_dict = json.loads(without_newline)
+        except IOError:
+            log.warn("Could not open name_map.json.")
+            self.name_dict = {}
+
+    def shortname(self, long_name):
+        for regex, shortname in self.name_dict.iteritems():
+            if re.match(regex, long_name, re.IGNORECASE) != None:
+                return shortname
+        return long_name
+
     def find_template(self, language):
         for i in self.flair_templates:
             if i["name"] == language:
@@ -78,12 +85,7 @@ class LanguageFlair:
                              % post_id)
                 continue
             language = language.groups()[0].lower()
-            
-            # Determine the short name for this language if possible
-            if self.name_mapper:
-                shortname = self.name_mapper.map_name(language)
-            else:
-                shortname = language
+            shortname = self.shortname(language)
             
             log.debug("Determined language to be %s for post %s."
                          % (shortname, post_id))

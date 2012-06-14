@@ -15,6 +15,7 @@ option_list = [
                 help = "The password on reddit the bot will use to login."),
                 
     make_option("-r", "--reddit", dest = "subreddit", type = str,
+                default = "badcode",
                 help = "The name of the subreddit (eg: badcode) the bot "
                        "will work within."),
                        

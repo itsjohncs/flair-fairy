@@ -1,8 +1,12 @@
-import logging, json, os
-import requests
+import json
+import logging 
+import os
 import re
-from app.helpers import *
+
+import requests
 from optparse import make_option
+
+from app.helpers import proxies
 
 log = logging.getLogger("flairfairy.languageflair")
 
@@ -10,7 +14,7 @@ class LanguageFlair:
     required_options = [
         make_option("--blow-away", dest = "blow_away", default = False,
             action = "store_true",
-            help = "The fairy will not ignore posts tha already have "
+            help = "The fairy will not ignore posts that already have "
                    "flair.")
     ]
     
@@ -69,7 +73,7 @@ class LanguageFlair:
             # TODO commented for testing purposes. Uncomment before push
 #            if i.link_flair_text and not options.blow_away:
 #                continue
-                
+              
             # Don't know how to parse code from this domain
             if not i.domain in code_sites.keys():
                 continue

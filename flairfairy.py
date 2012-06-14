@@ -1,6 +1,11 @@
 ## Parse Command Line Argument ##
-from optparse import OptionParser, make_option
 import logging # Needed for the logging command line argument default
+import reddit
+import sys
+import time
+from optparse import OptionParser, make_option
+
+from app.routines import *
 
 option_list = [
     make_option("-u", "--username", dest = "username", type = str,
@@ -49,7 +54,6 @@ option_list = [
                        "%default)")
 ]
 
-from app.routines import *
 option_list += RoutinesRunner.get_options()
 
 parser = OptionParser(
@@ -77,8 +81,6 @@ if not options.quiet:
 log = logging.getLogger("flairfairy")
 
 ## Connect to reddit ##
-import reddit, sys
-
 r = reddit.Reddit(
     user_agent = "bot:flair-fairy target:/r/badcode owner:brownhead"
 )
@@ -103,8 +105,6 @@ except reddit.errors.InvalidUserPass:
 log.info("Succesfully logged in as user %s." % options.username)
 
 ## Do it ##
-import time
-
 runner = RoutinesRunner(options)
 while True:
     runner.run(r, options)

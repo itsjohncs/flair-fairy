@@ -1,4 +1,6 @@
 import logging, json, os
+import requests
+import re
 from app.helpers import *
 from optparse import make_option
 
@@ -42,6 +44,13 @@ class LanguageFlair:
     def run(self, reddit, options):
         log.debug("Started work cycle.")
         
+        code_sites = {
+            'pastebin.com' : r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",
+            'codepad.org' : r"<head>.*?<title>(.*?) .*?</title>.*?</head>",
+            'gist.github.com': r'<div class="data type-([A-Za-z]*?)"',
+            'hatepase.com': r'<div class="data type-([A-Za-z]*?)"'
+            }
+
         for i in self.proxy.get(reddit):
             # Create a human readable id for the post to use in our log
             # messages
@@ -50,25 +59,25 @@ class LanguageFlair:
             log.debug("Processing post %s." % post_id)
             
             # Ignore all submissions that already have flair
-            if i.link_flair_text and not options.blow_away:
+            # TODO commented for testing purposes. Uncomment before push
+#            if i.link_flair_text and not options.blow_away:
+#                continue
+                
+            # Don't know how to parse code from this domain
+            if not i.domain in code_sites.keys():
                 continue
-                
-            try:
-                language = binparser.get_language(i.url)
-            except ConnectionFailure:
-                log.info("Possible broken link detected for post %s." % post_id)
-                
-                # Broken link or website, just skip it
+            page = requests.get(i.url)
+            if not page.ok:
+                log.debug("Got a %d error when opening %s" % (page.status_code,
+                                                              i.url))
                 continue
-                
+            language = re.search(code_sites[i.domain], page.content, 
+                       re.DOTALL | re.IGNORECASE)
             if language is None:
                 log.info("Language could not be determined for post %s."
                              % post_id)
-                             
                 continue
-            
-            # The language should always be lowercase
-            language = language.lower()
+            language = language.groups()[0].lower()
             
             # Determine the short name for this language if possible
             if self.name_mapper:

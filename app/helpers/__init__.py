@@ -1,1 +1,1 @@
-import binparser, proxies, shortnames
+import proxies

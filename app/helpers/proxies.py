@@ -1,4 +1,5 @@
 import collections
+import json
 
 class NewSubmissionsProxy:
     def __init__(self, subreddits, reddit = None, history_size = 100):
@@ -34,8 +35,6 @@ class NewSubmissionsProxy:
             yield i
             
     def get_state(self):
-        import json
-        
         state = {
             "subreddits": self.subreddits,
             "processed": self.processed
@@ -44,8 +43,6 @@ class NewSubmissionsProxy:
         return json.dumps(state)
     
     def load_state(self, state):
-        import json
-        
         state = json.loads(state)
         
         self.subreddits = state["subreddits"]

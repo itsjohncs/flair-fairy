@@ -1,5 +1,0 @@
-{
-	"c(\\+\\+)?$" : "c/c++",
-	"(visual)?basic$" : "vb",
-	"j(ava)? ?script$" : "js"
-}

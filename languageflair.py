@@ -1,4 +1,3 @@
-import json
 import logging 
 import os
 import re
@@ -6,7 +5,8 @@ import re
 import requests
 from optparse import make_option
 
-from app.helpers import proxies
+import proxies
+from settings import code_sites, name_dict, flair_templates
 
 log = logging.getLogger("flairfairy.languageflair")
 
@@ -19,25 +19,9 @@ class LanguageFlair:
     ]
     
     def __init__(self, options, subreddits):
-        try:
-            self.flair_templates = \
-                json.load(open(os.path.join(options.config_path, "flair_templates.json")))
-        except IOError:
-            log.crtitical("Could not open flair_templates.json.")
-            
-            raise
-        
+        self.flair_templates = flair_templates
         self.proxy = proxies.NewSubmissionsProxy(subreddits)
-    
-        # Create shortname dict
-        try:
-            name_map = os.path.join(options.config_path, options.map_file)
-            with open(name_map, 'r') as json_in:
-                without_newline = json_in.read().replace("\n", "")
-                self.name_dict = json.loads(without_newline)
-        except IOError:
-            log.warn("Could not open %s." % options.map_file)
-            self.name_dict = {}
+        self.name_dict = name_dict
 
     def shortname(self, long_name):
         for regex, shortname in self.name_dict.iteritems():
@@ -55,13 +39,6 @@ class LanguageFlair:
     def run(self, reddit, options):
         log.debug("Started work cycle.")
         
-        code_sites = {
-            'pastebin.com' : r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",
-            'codepad.org' : r"<head>.*?<title>(.*?) .*?</title>.*?</head>",
-            'gist.github.com': r'<div class="data type-([A-Za-z]*?)"',
-            'hatepase.com': r'<div class="data type-([A-Za-z]*?)"'
-            }
-
         for i in self.proxy.get(reddit):
             # Create a human readable id for the post to use in our log
             # messages

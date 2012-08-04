@@ -11,13 +11,6 @@ from settings import code_sites, name_dict, flair_templates
 log = logging.getLogger("flairfairy.languageflair")
 
 class LanguageFlair:
-    required_options = [
-        make_option("--blow-away", dest = "blow_away", default = False,
-            action = "store_true",
-            help = "The fairy will not ignore posts that already have "
-                   "flair.")
-    ]
-    
     def __init__(self, options, subreddits):
         self.flair_templates = flair_templates
         self.proxy = proxies.NewSubmissionsProxy(subreddits)

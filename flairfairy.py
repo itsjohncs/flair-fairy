@@ -52,10 +52,12 @@ option_list = [
     make_option("--config", dest = "config_path", type = "string",
                 default = "config/", metavar = "PATH",
                 help = "Search for config files in directory at PATH (default: "
-                       "%default)")
+                       "%default)"),
+    make_option("--blow-away", dest = "blow_away", default = False,
+        action = "store_true",
+        help = "The fairy will not ignore posts that already have "
+               "flair.")
 ]
-
-option_list += RoutinesRunner.get_options()
 
 parser = OptionParser(
     description = "Adds flair to posts linking to code snippets that "

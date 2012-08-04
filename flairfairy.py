@@ -5,7 +5,7 @@ import sys
 import time
 from optparse import OptionParser, make_option
 
-from app.routines import *
+from RoutineRunner import *
 
 option_list = [
     make_option("-u", "--username", dest = "username", type = str,

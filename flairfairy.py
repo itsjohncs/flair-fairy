@@ -1,8 +1,8 @@
 ## Parse Command Line Argument ##
 import logging # Needed for the logging command line argument default
 import os
+import praw
 import re
-import reddit
 import sys
 import time
 from optparse import OptionParser, make_option
@@ -88,7 +88,7 @@ if not options.quiet:
 log = logging.getLogger("flairfairy")
 
 ## Connect to reddit ##
-r = reddit.Reddit(
+r = praw.Reddit(
     user_agent = "bot:flair-fairy updates Flair for submissions after which" +
                  " programming language they contain. Owner by u/brownhead." +
                  " More info: github.com/brownhead/flair-fairy"

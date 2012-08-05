@@ -5,7 +5,7 @@ import sys
 import time
 from optparse import OptionParser, make_option
 
-from RoutineRunner import *
+import languageflair
 
 option_list = [
     make_option("-u", "--username", dest = "username", type = str,
@@ -91,7 +91,6 @@ r = reddit.Reddit(
 if options.refresh_speed < 0:
     options.refresh_speed = 30
 
-# Will raise reddit.errors.InvalidUserPass if unsuccesful
 try:
     r.login(options.username, options.password)
 except reddit.errors.InvalidUserPass:
@@ -101,9 +100,9 @@ except reddit.errors.InvalidUserPass:
 log.info("Succesfully logged in as user %s." % options.username)
 
 ## Do it ##
-runner = RoutinesRunner(options)
+routines = languageflair.LanguageFlair(options, options.subreddit)
 while True:
-    runner.run(r, options)
+    routines.run(r, options)
     time.sleep(options.refresh_speed)
 
 log.info("Exiting...")

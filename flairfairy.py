@@ -53,9 +53,10 @@ option_list = [
                 default = "config/", metavar = "PATH",
                 help = "Search for config files in directory at PATH (default: "
                        "%default)"),
+
     make_option("--blow-away", dest = "blow_away", default = False,
-        action = "store_true",
-        help = "The fairy will not ignore posts that already have "
+                action = "store_true",
+                help = "The fairy will not ignore posts that already have "
                "flair.")
 ]
 
@@ -68,10 +69,6 @@ parser = OptionParser(
 # Run the parser
 options = parser.parse_args()[0]
 
-# Ensure all required options are present
-if not (options.username and options.subreddit):
-    parser.error("Username and subreddit required.")
-    
 ## Set up logging ##
 if not options.quiet:
     sh = logging.StreamHandler()
@@ -94,17 +91,11 @@ r = reddit.Reddit(
 if options.refresh_speed < 0:
     options.refresh_speed = 30
 
-# Prompt the user for the password if one wasn't specified on the command line
-if not options.password:
-    import getpass
-    options.password = getpass.getpass("Password for user %s: " % options.username)
-    
 # Will raise reddit.errors.InvalidUserPass if unsuccesful
 try:
     r.login(options.username, options.password)
 except reddit.errors.InvalidUserPass:
     print >> sys.stderr, "FATAL: Invalid user, password combination."
-    
     sys.exit(1)
     
 log.info("Succesfully logged in as user %s." % options.username)

@@ -26,7 +26,6 @@ class LanguageFlair:
         for i in self.flair_templates:
             if i["name"] == language:
                 return i
-                
         return None
     
     def run(self, reddit, options):
@@ -69,7 +68,6 @@ class LanguageFlair:
                 log.info("Determined language \"%s\" for post %s could not be "
                          "matched to any flair template."
                              % (shortname, post_id))
-                
                 continue
                 
             # Set the flair if we're not in debug mode

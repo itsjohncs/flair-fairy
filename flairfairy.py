@@ -98,11 +98,16 @@ r = reddit.Reddit(
 if options.refresh_speed < 0:
     options.refresh_speed = 30
 
-try:
-    r.login(options.username, options.password)
-except reddit.errors.InvalidUserPass:
-    print >> sys.stderr, "FATAL: Invalid user, password combination."
-    sys.exit(1)
+if not options.debug:
+    try:
+        r.login(options.username, options.password)
+        subreddit = r.get_subreddit(options.subreddit)
+        if r.user not in subreddit.get_moderators():
+            print >> sys.stderr, "User not moderator of %s" % options.subreddit
+            sys.exit(1)
+    except reddit.errors.InvalidUserPass:
+        print >> sys.stderr, "FATAL: Invalid user, password combination."
+        sys.exit(1)
     
 log.info("Succesfully logged in as user %s." % options.username)
 

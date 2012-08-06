@@ -12,7 +12,8 @@ from optparse import OptionParser, make_option
 import requests
 
 import proxies
-from settings import HISTORY_SIZE, code_sites, name_dict, flair_templates
+from settings import (HISTORY_SIZE, code_sites, name_dict, 
+                      languages_with_css_icons)
 
 option_list = [
     make_option("-u", "--username", dest = "username", type = str,
@@ -119,10 +120,19 @@ def make_shortname(long_name):
             return shortname
     return long_name
 
-def find_template(language):
-    for i in flair_templates:
-        if i["name"] == language:
-            return i
+def find_flair_icon(language):
+    if language == 'vb.net':
+        return 'vb icon'
+    elif language == 'c/c++':
+        return 'cpp icon'
+    elif language == 'c#':
+        return 'csharp icon'
+    elif language == 'asp/asp.net':
+        return 'asp icon'
+    elif language == 'objective c':
+        return 'objectivec icon'
+    elif language in languages_with_css_icons:
+        return language + " icon"
     return None
 
 already_used = []
@@ -169,32 +179,31 @@ def run(options):
         language = re.search(code_sites[i.domain], page.content, 
                    re.DOTALL | re.IGNORECASE)
         if language is None:
-            log.info("Language could not be determined for post %s."
-                         % post_id)
+            log.info("Language could not be determined for post %s." % post_id)
             continue
         language = language.groups()[0].lower()
         shortname = make_shortname(language)
         
         log.debug("Determined language to be %s for post %s."
-                     % (shortname, post_id))
+                    % (shortname, post_id))
         
         # Map the name to a flair template
-        flair_template = find_template(shortname)
-        if not flair_template:
+        flair_icon = find_flair_icon(shortname)
+        if not flair_icon:
             log.info("Determined language \"%s\" for post %s could not be "
-                     "matched to any flair template."
+                     "matched to any flair icon."
                          % (shortname, post_id))
             continue
             
         # Set the flair if we're not in debug mode
         if not options.debug:
             i.set_flair(
-                flair_text = flair_template["name"],
-                flair_css_class = flair_template["css"]
+                flair_text = shortname,
+                flair_css_class = flair_icon
             )
             
         log.info("Set language of post %s to %s" % (post_id, shortname))
-        log.debug("Full flair: " + str(flair_template))
+        log.debug("Full flair: Text=%s Icon=%s" % (shortname, flair_icon))
             
     log.debug("Work cycle finished.")
 

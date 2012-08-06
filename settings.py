@@ -1,4 +1,5 @@
 HISTORY_SIZE = 3
+HISTORY_FILE = 'history.json'
 
 code_sites = {
     'pastebin.com' : r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",

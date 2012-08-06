@@ -12,7 +12,7 @@ from optparse import OptionParser, make_option
 import requests
 
 import proxies
-from settings import (HISTORY_SIZE, code_sites, name_dict, 
+from settings import (HISTORY_SIZE, HISTORY_FILE, code_sites, name_dict, 
                       languages_with_css_icons)
 
 option_list = [
@@ -135,19 +135,29 @@ def find_flair_icon(language):
         return language + " icon"
     return None
 
-already_used = []
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'r') as raw_history:
+            return json.loads(raw_history)
+    else:
+        return []
+
+def store_history(new_history):
+    with open(HISTORY_FILE, 'w') as raw_history:
+        return json.dumps(new_history, indent = 2)
 
 def undone_entries(subreddit):
-    global already_used
+    already_used = load_history()
     tmp_used = []
     for link in r.get_subreddit(subreddit).get_new_by_date(limit = None):
         if link.id in already_used:
-            alread_used = tmp_used[-(HISTORY_SIZE-1):] + [alread_used[-1]]
+            already_used = tmp_used[-(HISTORY_SIZE-1):] + [already_used[-1]]
             break
         tmp_used = tmp_used[-(HISTORY_SIZE-1):] + [link.id]
         yield link
     else:
         already_used = tmp_used
+    store_history(already_used)
 
 def run(options):
     log.debug("Started work cycle.")

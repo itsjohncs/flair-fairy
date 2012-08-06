@@ -1,17 +1,15 @@
 ## Parse Command Line Argument ##
-import collections
 import json
 import logging # Needed for the logging command line argument default
 import os
-import praw
 import re
 import sys
-import time
 from optparse import OptionParser, make_option
+from time import sleep
 
+import praw
 import requests
 
-import proxies
 from settings import (HISTORY_SIZE, HISTORY_FILE, code_sites, name_dict, 
                       languages_with_css_icons)
 
@@ -37,16 +35,6 @@ option_list = [
                 help = "The bot will not explain all of its actions ad "
                        "nauseum."),
                        
-    make_option("--map-file", dest = "map_file", default = "name_map.json",
-                type = str,
-                help = "The file containing the mapping from longname to "
-                       "short for all the languages."),
-                       
-    make_option("--start-count", dest = "start_count", default = 100,
-                type = int,
-                help = "The maximum number of posts the fiary retrieves "
-                       "out of the newest posts and processes."),
-                       
     make_option("--debug", dest = "debug", default = False,
                 action = "store_true",
                 help = "The fairy will not make any changes, rather it "
@@ -57,12 +45,7 @@ option_list = [
                 help = "Only output log entries above LEVEL (default: "
                        "%default)"),
                        
-    make_option("--config", dest = "config_path", type = "string",
-                default = "config/", metavar = "PATH",
-                help = "Search for config files in directory at PATH (default: "
-                       "%default)"),
-
-    make_option("--blow-away", dest = "blow_away", default = False,
+   make_option("--blow-away", dest = "blow_away", default = False,
                 action = "store_true",
                 help = "The fairy will not ignore posts that already have "
                "flair.")
@@ -222,6 +205,6 @@ def run(options):
 ## Do it ##
 while True:
     run(options)
-    time.sleep(options.refresh_speed)
+    sleep(options.refresh_speed)
 
 log.info("Exiting...")

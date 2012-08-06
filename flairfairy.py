@@ -156,7 +156,12 @@ def run(options):
         # Don't know how to parse code from this domain
         if not i.domain in code_sites.keys():
             continue
-        page = requests.get(i.url)
+        try:
+            page = requests.get(i.url)
+        except requests.exceptions.RequestException, e:
+            log.info("ERROR: Got an %s for %s. Skipping" % (type(e).__name__,
+                                                            i.title))
+            continue
         if not page.ok:
             log.debug("Got a %d error when opening %s" % (page.status_code,
                                                           i.url))

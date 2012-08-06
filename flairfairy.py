@@ -13,89 +13,89 @@ import requests
 from settings import (HISTORY_SIZE, HISTORY_FILE, code_sites, name_dict, 
                       languages_with_css_icons)
 
-option_list = [
-    make_option("-u", "--username", dest = "username", type = str,
-                help = "The username on reddit the bot will use to login."),
-                
-    make_option("-p", "--password", dest = "password", type = str,
-                help = "The password on reddit the bot will use to login."),
-                
-    make_option("-r", "--reddit", dest = "subreddit", type = str,
-                default = "badcode",
-                help = "The name of the subreddit (eg: badcode) the bot "
-                       "will work within."),
-                       
-    make_option("--refresh-speed", dest = "refresh_speed", type = float,
-                default = 30.0,
-                help = "The number of time in seconds the bot will wait "
-                       "before performing more work."),
-                       
-    make_option("-q", "--quiet", dest = "quiet", default = False, 
-                action = "store_true",
-                help = "The bot will not explain all of its actions ad "
-                       "nauseum."),
-                       
-    make_option("--debug", dest = "debug", default = False,
-                action = "store_true",
-                help = "The fairy will not make any changes, rather it "
-                       "will only announce the changes it would make."),
-                       
-    make_option("-l", "--log-level", dest = "log_level", type = "int",
-                default = logging.DEBUG, metavar = "LEVEL",
-                help = "Only output log entries above LEVEL (default: "
-                       "%default)"),
-                       
-   make_option("--blow-away", dest = "blow_away", default = False,
-                action = "store_true",
-                help = "The fairy will not ignore posts that already have "
-               "flair.")
-]
+def parse_commandline_arguments():
+    option_list = [
+        make_option("-u", "--username", dest = "username", type = str,
+                    help = "The username on reddit the bot will use to login."),
+                    
+        make_option("-p", "--password", dest = "password", type = str,
+                    help = "The password on reddit the bot will use to login."),
+                    
+        make_option("-r", "--reddit", dest = "subreddit", type = str,
+                    default = "badcode",
+                    help = "The name of the subreddit (eg: badcode) the bot "
+                           "will work within."),
+                           
+        make_option("--refresh-speed", dest = "refresh_speed", type = float,
+                    default = 30.0,
+                    help = "The number of time in seconds the bot will wait "
+                           "before performing more work."),
+                           
+        make_option("-q", "--quiet", dest = "quiet", default = False, 
+                    action = "store_true",
+                    help = "The bot will not explain all of its actions ad "
+                           "nauseum."),
+                           
+        make_option("--debug", dest = "debug", default = False,
+                    action = "store_true",
+                    help = "The fairy will not make any changes, rather it "
+                           "will only announce the changes it would make."),
+                           
+        make_option("-l", "--log-level", dest = "log_level", type = "int",
+                    default = logging.DEBUG, metavar = "LEVEL",
+                    help = "Only output log entries above LEVEL (default: "
+                           "%default)"),
+                           
+       make_option("--blow-away", dest = "blow_away", default = False,
+                    action = "store_true",
+                    help = "The fairy will not ignore posts that already have "
+                   "flair.")
+    ]
 
-parser = OptionParser(
-    description = "Adds flair to posts linking to code snippets that "
-                  "specify what language the snippet was written in.",
-    option_list = option_list
-)
+    parser = OptionParser(
+        description = "Adds flair to posts linking to code snippets that "
+                      "specify what language the snippet was written in.",
+        option_list = option_list
+    )
 
-log = logging.getLogger("flairfairy.languageflair")
+    options = parser.parse_args()[0]
 
-# Run the parser
-options = parser.parse_args()[0]
+    # Negative refresh_speed will cause a crash in time.sleep
+    if options.refresh_speed < 0:
+        options.refresh_speed = 30
 
-## Set up logging ##
-if not options.quiet:
-    sh = logging.StreamHandler()
-    sh.setFormatter(logging.Formatter(
-        "[%(asctime)s] %(name)s.%(levelname)s: %(message)s"))
-    topLog = logging.getLogger("flairfairy")
-    topLog.setLevel(options.log_level)
-    topLog.addHandler(sh)
+    return options
 
-log = logging.getLogger("flairfairy")
+def setup_logger():
+    log = logging.getLogger("flairfairy.languageflair")
 
-## Connect to reddit ##
-r = praw.Reddit(
-    user_agent = "bot:flair-fairy updates Flair for submissions after which" +
-                 " programming language they contain. Owner by u/brownhead." +
-                 " More info: github.com/brownhead/flair-fairy"
-)
+    ## Set up logging ##
+    if not options.quiet:
+        sh = logging.StreamHandler()
+        sh.setFormatter(logging.Formatter(
+            "[%(asctime)s] %(name)s.%(levelname)s: %(message)s"))
+        topLog = logging.getLogger("flairfairy")
+        topLog.setLevel(options.log_level)
+        topLog.addHandler(sh)
 
-# Negative refresh_speed will cause a crash in time.sleep
-if options.refresh_speed < 0:
-    options.refresh_speed = 30
+    return logging.getLogger("flairfairy")
 
-if not options.debug:
+def connect_to_reddit():
+    return praw.Reddit(
+        user_agent = "bot:flair-fairy updates Flair for submissions after which" +
+                     " programming language they contain. Owner by u/brownhead." +
+                     " More info: github.com/brownhead/flair-fairy")
+
+def login_to_reddit():
     try:
         r.login(options.username, options.password)
         subreddit = r.get_subreddit(options.subreddit)
         if r.user not in subreddit.get_moderators():
             print >> sys.stderr, "User not moderator of %s" % options.subreddit
             sys.exit(1)
-    except reddit.errors.InvalidUserPass:
+    except praw.errors.InvalidUserPass:
         print >> sys.stderr, "FATAL: Invalid user, password combination."
         sys.exit(1)
-    
-log.info("Succesfully logged in as user %s." % options.username)
 
 def make_shortname(long_name):
     for regex, shortname in name_dict.iteritems():
@@ -144,41 +144,40 @@ def undone_entries(subreddit):
         already_used = first_used
     store_history(already_used)
 
-def run(options):
+def work_cycle(options):
     log.debug("Started work cycle.")
     
-    for i in undone_entries(options.subreddit):
+    for entry in undone_entries(options.subreddit):
         # Create a human readable id for the post to use in our log
         # messages
-        post_id = "\"%s\" (%s)" % (i.title, i.id)
+        post_id = "\"%s\" (%s)" % (entry.title, entry.id)
         
         log.debug("Processing post %s." % post_id)
         
         # Ignore all submissions that already have flair
-        if i.link_flair_text and not options.blow_away:
+        if entry.link_flair_text and not options.blow_away:
             continue
           
         # Don't know how to parse code from this domain
-        if not i.domain in code_sites.keys():
+        if not entry.domain in code_sites.keys():
             continue
         try:
-            page = requests.get(i.url)
+            page = requests.get(entry.url)
         except requests.exceptions.RequestException, e:
             log.info("ERROR: Got an %s for %s. Skipping" % (type(e).__name__,
-                                                            i.title))
+                                                            entry.title))
             continue
         if not page.ok:
             log.debug("Got a %d error when opening %s" % (page.status_code,
-                                                          i.url))
+                                                          entry.url))
             continue
-        language = re.search(code_sites[i.domain], page.content, 
+        language = re.search(code_sites[entry.domain], page.content, 
                    re.DOTALL | re.IGNORECASE)
         if language is None:
             log.info("Language could not be determined for post %s." % post_id)
             continue
         language = language.groups()[0].lower()
         shortname = make_shortname(language)
-        
         log.debug("Determined language to be %s for post %s."
                     % (shortname, post_id))
         
@@ -190,7 +189,6 @@ def run(options):
                          % (shortname, post_id))
             continue
             
-        # Set the flair if we're not in debug mode
         if not options.debug:
             i.set_flair(
                 flair_text = shortname,
@@ -202,9 +200,14 @@ def run(options):
             
     log.debug("Work cycle finished.")
 
-## Do it ##
-while True:
-    run(options)
-    sleep(options.refresh_speed)
-
-log.info("Exiting...")
+if __name__ == '__main__':
+    options = parse_commandline_arguments()
+    log = setup_logger()
+    r = connect_to_reddit()
+    if not options.debug:
+        login_to_reddit()
+        log.info("Succesfully logged in as user %s." % options.username)
+    while True:
+        work_cycle(options)
+        sleep(options.refresh_speed)
+    log.info("Exiting...")

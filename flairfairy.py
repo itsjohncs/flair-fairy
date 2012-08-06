@@ -137,26 +137,28 @@ def find_flair_icon(language):
 
 def load_history():
     if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'r') as raw_history:
-            return json.loads(raw_history)
-    else:
-        return []
+        with open(HISTORY_FILE, 'r') as history_file:
+            content = history_file.read()
+            if content != '':
+                return json.loads(content)
+    return []
 
 def store_history(new_history):
-    with open(HISTORY_FILE, 'w') as raw_history:
-        return json.dumps(new_history, indent = 2)
+    with open(HISTORY_FILE, 'w') as history_file:
+        history_file.write(json.dumps(new_history, indent = 2))
 
 def undone_entries(subreddit):
+    first_used = []
     already_used = load_history()
-    tmp_used = []
     for link in r.get_subreddit(subreddit).get_new_by_date(limit = None):
         if link.id in already_used:
-            already_used = tmp_used[-(HISTORY_SIZE-1):] + [already_used[-1]]
+            already_used = first_used + already_used[:HISTORY_SIZE - len(first_used)]
             break
-        tmp_used = tmp_used[-(HISTORY_SIZE-1):] + [link.id]
+        if len(first_used) < HISTORY_SIZE:
+            first_used.append(link.id)
         yield link
     else:
-        already_used = tmp_used
+        already_used = first_used
     store_history(already_used)
 
 def run(options):

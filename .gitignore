@@ -34,3 +34,7 @@ nosetests.xml
 
 #Vim undo files
 *.un~
+
+# The history file as this will be changed every run. It's content should
+# be unique to every instance running the program.
+history.json

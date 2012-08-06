@@ -1,4 +1,6 @@
 ## Parse Command Line Argument ##
+import collections
+import json
 import logging # Needed for the logging command line argument default
 import os
 import praw
@@ -10,7 +12,7 @@ from optparse import OptionParser, make_option
 import requests
 
 import proxies
-from settings import code_sites, name_dict, flair_templates
+from settings import HISTORY_SIZE, code_sites, name_dict, flair_templates
 
 option_list = [
     make_option("-u", "--username", dest = "username", type = str,
@@ -123,12 +125,24 @@ def find_template(language):
             return i
     return None
 
-proxy = proxies.NewSubmissionsProxy(options.subreddit)
+already_used = []
 
-def run(reddit, options):
+def undone_entries(subreddit):
+    global already_used
+    tmp_used = []
+    for link in r.get_subreddit(subreddit).get_new_by_date(limit = None):
+        if link.id in already_used:
+            alread_used = tmp_used[-(HISTORY_SIZE-1):] + [alread_used[-1]]
+            break
+        tmp_used = tmp_used[-(HISTORY_SIZE-1):] + [link.id]
+        yield link
+    else:
+        already_used = tmp_used
+
+def run(options):
     log.debug("Started work cycle.")
     
-    for i in proxy.get(reddit):
+    for i in undone_entries(options.subreddit):
         # Create a human readable id for the post to use in our log
         # messages
         post_id = "\"%s\" (%s)" % (i.title, i.id)
@@ -174,14 +188,14 @@ def run(reddit, options):
                 flair_css_class = flair_template["css"]
             )
             
-            log.info("Set language of post %s to %s" % (post_id, shortname))
-            log.debug("Full flair: " + str(flair_template))
+        log.info("Set language of post %s to %s" % (post_id, shortname))
+        log.debug("Full flair: " + str(flair_template))
             
     log.debug("Work cycle finished.")
 
 ## Do it ##
 while True:
-    run(r, options)
+    run(options)
     time.sleep(options.refresh_speed)
 
 log.info("Exiting...")

@@ -1,3 +1,5 @@
+HISTORY_SIZE = 3
+
 code_sites = {
     'pastebin.com' : r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",
     'codepad.org' : r"<head>.*?<title>(.*?) .*?</title>.*?</head>",

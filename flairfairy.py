@@ -71,12 +71,12 @@ def setup_logger():
 
     ## Set up logging ##
     if not options.quiet:
-        sh = logging.StreamHandler()
-        sh.setFormatter(logging.Formatter(
+        fh = logging.FileHandler('flairlog.log')
+        fh.setFormatter(logging.Formatter(
             "[%(asctime)s] %(name)s.%(levelname)s: %(message)s"))
         topLog = logging.getLogger("flairfairy")
         topLog.setLevel(options.log_level)
-        topLog.addHandler(sh)
+        topLog.addHandler(fh)
 
     return logging.getLogger("flairfairy")
 

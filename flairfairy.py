@@ -3,7 +3,7 @@
 
 import argparse
 import json
-import logging # Needed for the logging command line argument default
+import logging
 import os
 import re
 import sys
@@ -42,7 +42,7 @@ def parse_commandline_arguments():
     args = parser.parse_args()
     # Negative refresh_speed will cause a crash in time.sleep
     if args.refresh_speed < 0:
-        args.refresh_speed = 3
+        args.refresh_speed = 30
     # Turn a log level like DEBUG into their int representation
     try:
         args.log_level = getattr(logging, args.log_level.upper())
@@ -58,12 +58,11 @@ def setup_logger():
     if not options.quiet:
         fh = logging.FileHandler(LOG_FILE)
         fh.setFormatter(logging.Formatter(
-            "[%(asctime)s] %(name)s.%(levelname)s: %(message)s"))
-        topLog = logging.getLogger("flairfairy")
-        topLog.setLevel(options.log_level)
-        topLog.addHandler(fh)
+            "[%(asctime)s] %(levelname)s: %(message)s"))
+        log.setLevel(options.log_level)
+        log.addHandler(fh)
 
-    return logging.getLogger("flairfairy")
+    return log
 
 def connect_to_reddit():
     return praw.Reddit(
@@ -152,21 +151,23 @@ def work_cycle(options):
           
         # Don't know how to parse code from this domain
         if not entry.domain in code_sites.keys():
+            log.warning("Don't know how to parse %s in %s." % (entry.domain,
+                                                               post_id))
             continue
         try:
             page = requests.get(entry.url)
         except requests.exceptions.RequestException, e:
-            log.info("ERROR: Got an %s for %s. Skipping" % (type(e).__name__,
-                                                            entry.title))
+            log.error("ERROR: Got an %s for %s. Skipping" % (type(e).__name__,
+                                                            post_id))
             continue
         if not page.ok:
-            log.debug("Got a %d error when opening %s" % (page.status_code,
-                                                          entry.url))
+            log.error("Got a %d error when opening %s for %s" % 
+                                     (page.status_code, entry.url, post_id))
             continue
         language = re.search(code_sites[entry.domain], page.content, 
                    re.DOTALL | re.IGNORECASE)
         if language is None:
-            log.info("Language could not be determined for post %s." % post_id)
+            log.warning("Language could not be determined for %s." % post_id)
             continue
         language = language.groups()[0].lower()
         shortname = make_shortname(language)
@@ -176,9 +177,8 @@ def work_cycle(options):
         # Map the name to a flair template
         flair_icon = find_flair_icon(shortname)
         if not flair_icon:
-            log.info("Determined language \"%s\" for post %s could not be "
-                     "matched to any flair icon."
-                         % (shortname, post_id))
+            log.warning("Determined language \"%s\" for post %s could not be "
+                     "matched to any flair icon." % (shortname, post_id))
             continue
             
         if not options.debug:

@@ -1,4 +1,6 @@
-## Parse Command Line Argument ##
+'''Sets links flair depending on the used programming language in the link
+'''
+
 import json
 import logging # Needed for the logging command line argument default
 import os
@@ -14,6 +16,7 @@ from settings import (HISTORY_SIZE, HISTORY_FILE, LOG_FILE,
                       code_sites, name_dict, languages_with_css_icons)
 
 def parse_commandline_arguments():
+    '''Parse and return arguments after sanity checks'''
     option_list = [
         make_option("-u", "--username", dest = "username", type = str,
                     help = "The username on reddit the bot will use to login."),
@@ -67,9 +70,9 @@ def parse_commandline_arguments():
     return options
 
 def setup_logger():
-    log = logging.getLogger("flairfairy.languageflair")
+    '''Setup logging to the file specified in settings.py'''
+    log = logging.getLogger("flairfairy")
 
-    ## Set up logging ##
     if not options.quiet:
         fh = logging.FileHandler(LOG_FILE)
         fh.setFormatter(logging.Formatter(
@@ -98,12 +101,14 @@ def login_to_reddit():
         sys.exit(1)
 
 def make_shortname(long_name):
+    '''Turn a long version of a language like javascript into the short js'''
     for regex, shortname in name_dict.iteritems():
         if re.match(regex, long_name, re.IGNORECASE) != None:
             return shortname
     return long_name
 
 def find_flair_icon(language):
+    '''Return the name of the icon matching the language'''
     if language == 'vb.net':
         return 'vb icon'
     elif language == 'c/c++':
@@ -119,6 +124,7 @@ def find_flair_icon(language):
     return None
 
 def load_history():
+    '''Load the history of which entires we've already processed'''
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE, 'r') as history_file:
             content = history_file.read()
@@ -127,15 +133,18 @@ def load_history():
     return []
 
 def store_history(new_history):
+    '''Store the history in the history file'''
     with open(HISTORY_FILE, 'w') as history_file:
         history_file.write(json.dumps(new_history, indent = 2))
 
 def undone_entries(subreddit):
+    '''Yield newest entries to `subreddit` until entry with id in history_file'''
     first_used = []
     already_used = load_history()
     for link in r.get_subreddit(subreddit).get_new_by_date(limit = None):
         if link.id in already_used:
-            already_used = first_used + already_used[:HISTORY_SIZE - len(first_used)]
+            already_used = (first_used + 
+                            already_used[:HISTORY_SIZE - len(first_used)])
             break
         if len(first_used) < HISTORY_SIZE:
             first_used.append(link.id)
@@ -145,6 +154,7 @@ def undone_entries(subreddit):
     store_history(already_used)
 
 def work_cycle(options):
+    '''Set flair for every entry we haven't seen before'''
     log.debug("Started work cycle.")
     
     for entry in undone_entries(options.subreddit):

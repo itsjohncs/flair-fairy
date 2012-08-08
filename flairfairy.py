@@ -1,12 +1,12 @@
 '''Sets links flair depending on the used programming language in the link
 '''
 
+import argparse
 import json
 import logging # Needed for the logging command line argument default
 import os
 import re
 import sys
-from optparse import OptionParser, make_option
 from time import sleep
 
 import praw
@@ -17,57 +17,39 @@ from settings import (HISTORY_SIZE, HISTORY_FILE, LOG_FILE,
 
 def parse_commandline_arguments():
     '''Parse and return arguments after sanity checks'''
-    option_list = [
-        make_option("-u", "--username", dest = "username", type = str,
+    parser = argparse.ArgumentParser('Sets links flair depending on the used '+
+                                     'programming language in the link')
+    parser.add_argument('-u', '--username', 
                     help = "The username on reddit the bot will use to login."),
-                    
-        make_option("-p", "--password", dest = "password", type = str,
+    parser.add_argument('-p', '--password', 
                     help = "The password on reddit the bot will use to login."),
-                    
-        make_option("-r", "--reddit", dest = "subreddit", type = str,
-                    default = "badcode",
+    parser.add_argument("-r", "--subreddit", default = "badcode",
                     help = "The name of the subreddit (eg: badcode) the bot "
                            "will work within."),
-                           
-        make_option("--refresh-speed", dest = "refresh_speed", type = float,
-                    default = 30.0,
+    parser.add_argument("--refresh-speed", type = float, default = 30.0,
                     help = "The number of time in seconds the bot will wait "
                            "before performing more work."),
-                           
-        make_option("-q", "--quiet", dest = "quiet", default = False, 
-                    action = "store_true",
+    parser.add_argument("-q", "--quiet", action = "store_true",
                     help = "The bot will not explain all of its actions ad "
                            "nauseum."),
-                           
-        make_option("--debug", dest = "debug", default = False,
-                    action = "store_true",
+    parser.add_argument("--debug", action = "store_true",
                     help = "The fairy will not make any changes, rather it "
                            "will only announce the changes it would make."),
-                           
-        make_option("-l", "--log-level", dest = "log_level", type = "int",
-                    default = logging.DEBUG, metavar = "LEVEL",
-                    help = "Only output log entries above LEVEL (default: "
-                           "%default)"),
-                           
-       make_option("--blow-away", dest = "blow_away", default = False,
-                    action = "store_true",
-                    help = "The fairy will not ignore posts that already have "
-                   "flair.")
-    ]
-
-    parser = OptionParser(
-        description = "Adds flair to posts linking to code snippets that "
-                      "specify what language the snippet was written in.",
-        option_list = option_list
-    )
-
-    options = parser.parse_args()[0]
-
+    parser.add_argument("-l", "--log-level", default = 'DEBUG',
+                    help = "Only log events at higher than this value."),
+    parser.add_argument("--blow-away", action = "store_true",
+                    help = "Robot will not ignore posts with flair.")
+    args = parser.parse_args()
     # Negative refresh_speed will cause a crash in time.sleep
-    if options.refresh_speed < 0:
-        options.refresh_speed = 30
-
-    return options
+    if args.refresh_speed < 0:
+        args.refresh_speed = 3
+    # Turn a log level like DEBUG into their int representation
+    try:
+        args.log_level = getattr(logging, args.log_level.upper())
+    except AttributeError:
+        print >> sys.stderr, "FATAL: Invalid log level. See help."
+        sys.exit(1)
+    return args
 
 def setup_logger():
     '''Setup logging to the file specified in settings.py'''

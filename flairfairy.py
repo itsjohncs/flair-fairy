@@ -147,6 +147,7 @@ def work_cycle(options):
         
         # Ignore all submissions that already have flair
         if entry.link_flair_text and not options.blow_away:
+            log.debug("Already has flair, continuing to next entry.")
             continue
           
         # Don't know how to parse code from this domain
@@ -157,8 +158,7 @@ def work_cycle(options):
         try:
             page = requests.get(entry.url)
         except requests.exceptions.RequestException, e:
-            log.error("ERROR: Got an %s for %s. Skipping" % (type(e).__name__,
-                                                            post_id))
+            log.error("Got a %s when opening %s." % (type(e).__name__, post_id))
             continue
         if not page.ok:
             log.error("Got a %d error when opening %s for %s" % 
@@ -171,21 +171,17 @@ def work_cycle(options):
             continue
         language = language.groups()[0].lower()
         shortname = make_shortname(language)
-        log.debug("Determined language to be %s for post %s."
-                    % (shortname, post_id))
+        log.debug("Programming Language is %s for %s." % (shortname, post_id))
         
         # Map the name to a flair template
         flair_icon = find_flair_icon(shortname)
-        if not flair_icon:
+        if flair_icon is None:
             log.warning("Determined language \"%s\" for post %s could not be "
-                     "matched to any flair icon." % (shortname, post_id))
+                        "matched to any flair icon." % (shortname, post_id))
             continue
             
         if not options.debug:
-            i.set_flair(
-                flair_text = shortname,
-                flair_css_class = flair_icon
-            )
+            entry.set_flair(flair_text = shortname, flair_css_class = flair_icon)
             
         log.info("Set language of post %s to %s" % (post_id, shortname))
         log.debug("Full flair: Text=%s Icon=%s" % (shortname, flair_icon))

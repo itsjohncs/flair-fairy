@@ -32,7 +32,7 @@ def parse_commandline_arguments():
     parser.add_argument("--debug", action = "store_true",
                     help = "The fairy will not make any changes, rather it "
                            "will only announce the changes it would make."),
-    parser.add_argument("-l", "--log-level", default = 'DEBUG',
+    parser.add_argument("-l", "--log-level", default = 'WARNING',
                     help = "Only log events at higher than this value."),
     parser.add_argument("--blow-away", action = "store_true",
                     help = "Robot will not ignore posts with flair.")

@@ -29,9 +29,6 @@ def parse_commandline_arguments():
     parser.add_argument("--refresh-speed", type = float, default = 30.0,
                     help = "The number of time in seconds the bot will wait "
                            "before performing more work."),
-    parser.add_argument("-q", "--quiet", action = "store_true",
-                    help = "The bot will not explain all of its actions ad "
-                           "nauseum."),
     parser.add_argument("--debug", action = "store_true",
                     help = "The fairy will not make any changes, rather it "
                            "will only announce the changes it would make."),
@@ -43,7 +40,7 @@ def parse_commandline_arguments():
     # Negative refresh_speed will cause a crash in time.sleep
     if args.refresh_speed < 0:
         args.refresh_speed = 30
-    # Turn a log level like DEBUG into their int representation
+    # Turn a log level like DEBUG into it's int representation
     try:
         args.log_level = getattr(logging, args.log_level.upper())
     except AttributeError:
@@ -54,14 +51,11 @@ def parse_commandline_arguments():
 def setup_logger():
     '''Setup logging to the file specified in settings.py'''
     log = logging.getLogger("flairfairy")
-
-    if not options.quiet:
-        sh = logging.StreamHandler()
-        sh.setFormatter(logging.Formatter(
-            "[%(asctime)s] %(levelname)s: %(message)s"))
-        log.setLevel(options.log_level)
-        log.addHandler(sh)
-
+    sh = logging.StreamHandler()
+    sh.setFormatter(logging.Formatter(
+        "[%(asctime)s] %(levelname)s: %(message)s"))
+    log.setLevel(options.log_level)
+    log.addHandler(sh)
     return log
 
 def connect_to_reddit():

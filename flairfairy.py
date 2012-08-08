@@ -12,7 +12,7 @@ from time import sleep
 import praw
 import requests
 
-from settings import (HISTORY_SIZE, HISTORY_FILE, LOG_FILE,
+from settings import (HISTORY_SIZE, HISTORY_FILE, 
                       code_sites, name_dict, languages_with_css_icons)
 
 def parse_commandline_arguments():
@@ -56,11 +56,11 @@ def setup_logger():
     log = logging.getLogger("flairfairy")
 
     if not options.quiet:
-        fh = logging.FileHandler(LOG_FILE)
-        fh.setFormatter(logging.Formatter(
+        sh = logging.StreamHandler()
+        sh.setFormatter(logging.Formatter(
             "[%(asctime)s] %(levelname)s: %(message)s"))
         log.setLevel(options.log_level)
-        log.addHandler(fh)
+        log.addHandler(sh)
 
     return log
 

@@ -1,6 +1,5 @@
 HISTORY_SIZE = 3
 HISTORY_FILE = 'history.json'
-LOG_FILE = 'flairlog.log'
 
 code_sites = {
     'pastebin.com' : r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",

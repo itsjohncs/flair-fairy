@@ -10,8 +10,8 @@ from time import sleep
 import praw
 import requests
 
-from settings import (HISTORY_SIZE, HISTORY_FILE, code_sites, name_dict, 
-                      languages_with_css_icons)
+from settings import (HISTORY_SIZE, HISTORY_FILE, LOG_FILE,
+                      code_sites, name_dict, languages_with_css_icons)
 
 def parse_commandline_arguments():
     option_list = [
@@ -71,7 +71,7 @@ def setup_logger():
 
     ## Set up logging ##
     if not options.quiet:
-        fh = logging.FileHandler('flairlog.log')
+        fh = logging.FileHandler(LOG_FILE)
         fh.setFormatter(logging.Formatter(
             "[%(asctime)s] %(name)s.%(levelname)s: %(message)s"))
         topLog = logging.getLogger("flairfairy")

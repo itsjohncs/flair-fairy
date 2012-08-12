@@ -17,7 +17,7 @@ from settings import (HISTORY_SIZE, HISTORY_FILE,
 
 def parse_commandline_arguments():
     '''Parse and return arguments after sanity checks'''
-    parser = argparse.ArgumentParser('Sets links flair depending on the used '+
+    parser = argparse.ArgumentParser('Sets links flair depending on the used '
                                      'programming language in the link')
     parser.add_argument('-u', '--username', 
                     help = "The username on reddit the bot will use to login."),
@@ -36,6 +36,8 @@ def parse_commandline_arguments():
                     help = "Only log events at higher than this value."),
     parser.add_argument("--blow-away", action = "store_true",
                     help = "Robot will not ignore posts with flair.")
+    parser.add_argument("--no-history", action = "store_true",
+                    help = "Process any already processed entry.")
     args = parser.parse_args()
     # Negative refresh_speed will cause a crash in time.sleep
     if args.refresh_speed < 0:
@@ -50,7 +52,7 @@ def parse_commandline_arguments():
 
 def setup_logger():
     '''Setup logging to the file specified in settings.py'''
-    log = logging.getLogger("flairfairy")
+    log = logging.getLogger()
     sh = logging.StreamHandler()
     sh.setFormatter(logging.Formatter(
         "[%(asctime)s] %(levelname)s: %(message)s"))
@@ -60,8 +62,8 @@ def setup_logger():
 
 def connect_to_reddit():
     return praw.Reddit(
-        user_agent = "bot:flair-fairy updates Flair for submissions after which" +
-                     " programming language they contain. Owner by u/brownhead." +
+        user_agent = "bot:flair-fairy updates Flair for submissions after which"
+                     " programming language they contain. Owner by u/brownhead."
                      " More info: github.com/brownhead/flair-fairy")
 
 def login_to_reddit():
@@ -115,7 +117,10 @@ def store_history(new_history):
 def undone_entries(subreddit):
     '''Yield newest entries to `subreddit` until entry with id in history_file'''
     first_used = []
-    already_used = load_history()
+    if options.no_history:
+        already_used = []
+    else:
+        already_used = load_history()
     for link in r.get_subreddit(subreddit).get_new_by_date(limit = None):
         if link.id in already_used:
             already_used = (first_used + 
@@ -170,8 +175,8 @@ def work_cycle(options):
         # Map the name to a flair template
         flair_icon = find_flair_icon(shortname)
         if flair_icon is None:
-            log.warning("Determined language \"%s\" for post %s could not be "
-                        "matched to any flair icon." % (shortname, post_id))
+            log.warning("Couldn't match a flair icon with the language \"%s\""
+                        "for %s" % (shortname, post_id))
             continue
             
         if not options.debug:

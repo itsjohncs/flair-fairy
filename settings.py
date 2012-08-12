@@ -5,7 +5,7 @@ code_sites = {
     'pastebin.com' : r"<head>.*?<title>\[(.*?)\].*?</title>.*?</head>",
     'codepad.org' : r"<head>.*?<title>(.*?) .*?</title>.*?</head>",
     'gist.github.com': r'<div class="data type-([A-Za-z]*?)"',
-    'hatepase.com': r'<div class="data type-([A-Za-z]*?)"'
+    'hatepaste.com': r'<div class="data type-([A-Za-z]*?)"'
     }
 
 name_dict = { 

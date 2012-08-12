@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''Sets links flair depending on the used programming language in the link
 '''
 
